@@ -1,0 +1,34 @@
+{
+    "name": "real-time-chat-starter",
+    "version": "0.1.0",
+    "description": "Real-time chat starter with a WebSocket server, Next.js frontend, and MCP server integration.",
+    "main": "src/index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node src/index.js",
+        "dev": "next dev",
+        "build": "next build",
+        "start:web": "next start",
+        "dev:server": "tsx server/index.ts",
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+        "lint": "eslint src/"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.0.1",
+        "next": "^14.2.35",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "ws": "^8.18.0",
+        "zod": "^3.22.4"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "@types/react": "19.2.18",
+        "@types/ws": "^8.5.0",
+        "eslint": "^9.39.4",
+        "jest": "^29.7.0",
+        "prettier": "^3.1.0",
+        "tsx": "^4.19.0",
+        "typescript": "^5.6.0"
+    }
+}
