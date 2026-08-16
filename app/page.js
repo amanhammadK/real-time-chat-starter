@@ -104,48 +104,58 @@ export default function ChatApp() {
     }
   };
 
+  const getInitials = (name) => name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2) || "?";
+  const avatarColors = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
+  const getAvatarColor = (name) => avatarColors[name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % avatarColors.length];
+
   if (!joined) {
     return (
       <div style={{
         minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-        background: "#0f172a", fontFamily: "Inter, system-ui, sans-serif",
+        background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       }}>
         <div style={{
-          background: "#fff", borderRadius: 16, padding: "2.5rem", width: 380,
-          boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
+          background: "#fff", borderRadius: 16, padding: "2.5rem 2rem", width: 400,
+          boxShadow: "0 25px 50px -12px rgba(0,0,0,0.4)",
         }}>
-          <div style={{ fontSize: "1.4rem", fontWeight: 700, color: "#0f172a", marginBottom: "0.25rem" }}>Join the chat</div>
-          <p style={{ color: "#64748b", fontSize: "0.875rem", marginTop: 0, marginBottom: "1.5rem" }}>
-            {connected ? "Connected. Enter your display name to start." : `Connecting to ${WS_URL}...`}
-          </p>
-          <label style={{ fontSize: "0.8rem", color: "#475569", fontWeight: 600 }}>Display name</label>
+          <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "1.25rem", fontWeight: 700, marginBottom: "0.75rem" }}>💬</div>
+            <div style={{ fontSize: "1.3rem", fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>Join the chat</div>
+            <p style={{ color: "#64748b", fontSize: "0.85rem", marginTop: "0.35rem", marginBottom: 0 }}>
+              {connected ? "Enter your display name to get started" : `Connecting to ${WS_URL}...`}
+            </p>
+          </div>
+          <label style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Display name</label>
           <input
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && joinChannel(channel)}
             placeholder="e.g. Alex"
             style={{
-              width: "100%", padding: "0.65rem 0.75rem", margin: "0.4rem 0 1rem", border: "1px solid #e2e8f0",
-              borderRadius: 8, fontSize: "0.9rem", boxSizing: "border-box",
+              width: "100%", padding: "0.7rem 0.85rem", margin: "0.4rem 0 1rem", border: "1px solid #e2e8f0",
+              borderRadius: 10, fontSize: "0.9rem", boxSizing: "border-box", outline: "none",
+              transition: "border-color 0.15s ease",
             }}
           />
-          <label style={{ fontSize: "0.8rem", color: "#475569", fontWeight: 600 }}>Channel</label>
+          <label style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Channel</label>
           <select
             value={channel}
             onChange={(e) => setChannel(e.target.value)}
-            style={{ width: "100%", padding: "0.65rem 0.75rem", margin: "0.4rem 0 1.25rem", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: "0.9rem", background: "#fff" }}
+            style={{ width: "100%", padding: "0.7rem 0.85rem", margin: "0.4rem 0 1.25rem", border: "1px solid #e2e8f0", borderRadius: 10, fontSize: "0.9rem", background: "#fff", outline: "none" }}
           >
-            <option value="general">general</option>
-            <option value="announcements">announcements</option>
-            <option value="support">support</option>
-            <option value="random">random</option>
+            <option value="general"># general</option>
+            <option value="announcements"># announcements</option>
+            <option value="support"># support</option>
+            <option value="random"># random</option>
           </select>
           <button
             onClick={() => joinChannel(channel)}
             disabled={!connected || !displayName.trim()}
             style={{
-              width: "100%", padding: "0.7rem", background: "#6366f1", color: "#fff", border: "none",
-              borderRadius: 8, cursor: "pointer", fontWeight: 600, fontSize: "0.9rem",
-              opacity: connected && displayName.trim() ? 1 : 0.5,
+              width: "100%", padding: "0.75rem", background: connected && displayName.trim() ? "linear-gradient(135deg, #6366f1, #8b5cf6)" : "#94a3b8",
+              color: "#fff", border: "none", borderRadius: 10, cursor: connected && displayName.trim() ? "pointer" : "not-allowed",
+              fontWeight: 600, fontSize: "0.9rem", boxShadow: connected && displayName.trim() ? "0 4px 12px rgba(99,102,241,0.3)" : "none",
+              transition: "all 0.2s ease",
             }}
           >
             Enter chat
@@ -157,55 +167,73 @@ export default function ChatApp() {
 
   return (
     <div style={{
-      display: "flex", height: "100vh", background: "#f8fafc", fontFamily: "Inter, system-ui, sans-serif", overflow: "hidden",
+      display: "flex", height: "100vh", background: "#f1f5f9", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", overflow: "hidden",
     }}>
       <aside style={{
-        width: 240, background: "#0f172a", color: "#e2e8f0", display: "flex", flexDirection: "column", flexShrink: 0,
+        width: 260, background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)", color: "#e2e8f0", display: "flex", flexDirection: "column", flexShrink: 0, boxShadow: "4px 0 24px rgba(0,0,0,0.15)",
       }}>
-        <div style={{ padding: "1.25rem", borderBottom: "1px solid #1e293b" }}>
-          <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#fff" }}>Chatter</div>
-          <div style={{ fontSize: "0.75rem", color: "#64748b", marginTop: 2 }}>
-            <span style={{ color: connected ? "#10b981" : "#ef4444" }}>●</span> {connected ? "Connected" : "Disconnected"}
+        <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #1e293b" }}>
+          <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>Chatter</div>
+          <div style={{ fontSize: "0.7rem", color: "#64748b", marginTop: 4, display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: connected ? "#22c55e" : "#ef4444", display: "inline-block" }}></span>
+            {connected ? "Connected" : "Disconnected"}
           </div>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "1rem 0" }}>
-          <div style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", padding: "0 1.25rem 0.5rem" }}>Channels</div>
+          <div style={{ fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "#64748b", padding: "0 1.5rem 0.5rem", fontWeight: 600 }}>Channels</div>
           {channels.map((ch) => (
             <button
               key={ch}
               onClick={() => pickChannel(ch)}
               style={{
                 display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", textAlign: "left",
-                padding: "0.5rem 1.25rem", background: "transparent", border: "none", cursor: "pointer",
-                color: channel === ch ? "#a5b4fc" : "#94a3b8", fontSize: "0.875rem", fontWeight: channel === ch ? 600 : 400,
+                padding: "0.55rem 1.5rem", background: channel === ch ? "rgba(99,102,241,0.15)" : "transparent",
+                border: "none", cursor: "pointer", borderLeft: channel === ch ? "3px solid #818cf8" : "3px solid transparent",
+                color: channel === ch ? "#c7d2fe" : "#94a3b8", fontSize: "0.875rem", fontWeight: channel === ch ? 600 : 400,
+                transition: "all 0.15s ease",
               }}
             >
-              <span style={{ color: "#6366f1" }}>#</span> {ch}
+              <span style={{ color: "#6366f1", fontWeight: 700 }}>#</span> {ch}
             </button>
           ))}
         </div>
-        <div style={{ padding: "1rem 1.25rem", borderTop: "1px solid #1e293b", fontSize: "0.8rem", color: "#94a3b8" }}>
-          Signed in as <strong style={{ color: "#e2e8f0" }}>{displayName}</strong>
+        <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid #1e293b", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 8, background: getAvatarColor(displayName),
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#fff", fontSize: "0.7rem", fontWeight: 700, flexShrink: 0,
+          }}>{getInitials(displayName)}</div>
+          <div>
+            <div style={{ fontSize: "0.8rem", color: "#e2e8f0", fontWeight: 600 }}>{displayName}</div>
+            <div style={{ fontSize: "0.65rem", color: "#64748b" }}>Online</div>
+          </div>
         </div>
       </aside>
 
       <main style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <header style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.75rem 1.5rem",
-          background: "#fff", borderBottom: "1px solid #e2e8f0",
+          display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.85rem 1.75rem",
+          background: "#fff", borderBottom: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
         }}>
-          <div>
-            <div style={{ fontWeight: 700, color: "#0f172a" }}># {channel}</div>
-            <div style={{ fontSize: "0.75rem", color: "#64748b" }}>
-              {typingUsers.length > 0 ? `${typingUsers.join(", ")} typing...` : `${messages.length} messages`}
-            </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span style={{ color: "#6366f1", fontWeight: 700, fontSize: "1rem" }}>#</span>
+            <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.95rem" }}>{channel}</div>
           </div>
-          <button
-            onClick={() => { setSearchOpen(!searchOpen); setSearchResults([]); }}
-            style={{ padding: "0.4rem 0.9rem", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 8, cursor: "pointer", fontSize: "0.8rem" }}
-          >
-            {searchOpen ? "Close search" : "Search messages"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <div style={{ fontSize: "0.75rem", color: "#64748b" }}>
+              {typingUsers.length > 0 ? (
+                <span style={{ color: "#6366f1", fontWeight: 500 }}>{typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...</span>
+              ) : (
+                <span>{messages.length} message{messages.length !== 1 ? "s" : ""}</span>
+              )}
+            </div>
+            <button
+              onClick={() => { setSearchOpen(!searchOpen); setSearchResults([]); }}
+              style={{ padding: "0.4rem 0.9rem", background: searchOpen ? "#6366f1" : "#f1f5f9", color: searchOpen ? "#fff" : "#475569", border: "1px solid " + (searchOpen ? "#6366f1" : "#e2e8f0"), borderRadius: 8, cursor: "pointer", fontSize: "0.8rem", fontWeight: 500, transition: "all 0.15s ease" }}
+            >
+              {searchOpen ? "✕ Close" : "🔍 Search"}
+            </button>
+          </div>
         </header>
 
         {searchOpen && (
@@ -234,31 +262,39 @@ export default function ChatApp() {
           </div>
         )}
 
-        <div style={{ flex: 1, overflowY: "auto", padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "1.25rem 1.75rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           {messages.map((m) => (
             <div key={m.id} style={{
               alignSelf: m.userId === userId ? "flex-end" : "flex-start",
-              maxWidth: "70%",
+              maxWidth: "75%",
             }}>
               {m.system ? (
                 <div style={{
-                  fontSize: "0.8rem", color: "#94a3b8", textAlign: "center", background: "#f1f5f9",
-                  padding: "0.35rem 1rem", borderRadius: 999, margin: "0 auto",
+                  fontSize: "0.75rem", color: "#94a3b8", textAlign: "center", background: "#f1f5f9",
+                  padding: "0.3rem 1rem", borderRadius: 999, margin: "0.5rem auto", width: "fit-content",
                 }}>
                   {m.content}
                 </div>
               ) : (
-                <div>
-                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", marginBottom: "0.15rem", paddingLeft: m.userId === userId ? 0 : "0.35rem" }}>
-                    {m.userId === userId ? "You" : m.userId} &middot; {formatTime(m.createdAt)}
-                  </div>
+                <div style={{ display: "flex", gap: "0.5rem", flexDirection: m.userId === userId ? "row-reverse" : "row", alignItems: "flex-end" }}>
                   <div style={{
-                    background: m.userId === userId ? "#6366f1" : "#fff",
-                    color: m.userId === userId ? "#fff" : "#0f172a",
-                    border: m.userId === userId ? "none" : "1px solid #e2e8f0",
-                    padding: "0.6rem 0.9rem", borderRadius: 12, fontSize: "0.9rem", boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-                  }}>
-                    {m.content}
+                    width: 30, height: 30, borderRadius: 8, background: getAvatarColor(m.userId),
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#fff", fontSize: "0.65rem", fontWeight: 700, flexShrink: 0,
+                  }}>{getInitials(m.userId)}</div>
+                  <div>
+                    <div style={{ fontSize: "0.7rem", color: "#94a3b8", marginBottom: "0.2rem", textAlign: m.userId === userId ? "right" : "left" }}>
+                      <span style={{ fontWeight: 600 }}>{m.userId === userId ? "You" : m.userId}</span> &middot; {formatTime(m.createdAt)}
+                    </div>
+                    <div style={{
+                      background: m.userId === userId ? "linear-gradient(135deg, #6366f1, #8b5cf6)" : "#fff",
+                      color: m.userId === userId ? "#fff" : "#0f172a",
+                      border: m.userId === userId ? "none" : "1px solid #e2e8f0",
+                      padding: "0.6rem 0.9rem", borderRadius: m.userId === userId ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
+                      fontSize: "0.875rem", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", lineHeight: 1.5,
+                    }}>
+                      {m.content}
+                    </div>
                   </div>
                 </div>
               )}
@@ -267,8 +303,8 @@ export default function ChatApp() {
           <div ref={bottomRef} />
         </div>
 
-        <footer style={{ padding: "0.75rem 1.5rem 1.25rem", background: "#fff", borderTop: "1px solid #e2e8f0" }}>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
+        <footer style={{ padding: "1rem 1.75rem 1.25rem", background: "#fff", borderTop: "1px solid #e2e8f0" }}>
+          <div style={{ display: "flex", gap: "0.6rem", alignItems: "flex-end" }}>
             <textarea
               value={input}
               onChange={(e) => { setInput(e.target.value); notifyTyping(true); }}
@@ -277,16 +313,20 @@ export default function ChatApp() {
               placeholder={`Message #${channel}`}
               rows={1}
               style={{
-                flex: 1, padding: "0.65rem 0.75rem", border: "1px solid #e2e8f0", borderRadius: 10,
-                resize: "none", fontSize: "0.9rem", fontFamily: "inherit", boxSizing: "border-box",
+                flex: 1, padding: "0.7rem 0.9rem", border: "1px solid #e2e8f0", borderRadius: 10,
+                resize: "none", fontSize: "0.875rem", fontFamily: "inherit", boxSizing: "border-box",
+                outline: "none", transition: "border-color 0.15s ease",
               }}
             />
             <button
               onClick={sendMessage}
               disabled={!input.trim()}
               style={{
-                padding: "0.65rem 1.5rem", background: "#6366f1", color: "#fff", border: "none", borderRadius: 10,
-                cursor: "pointer", fontWeight: 600, fontSize: "0.9rem", opacity: input.trim() ? 1 : 0.5,
+                padding: "0.7rem 1.5rem", background: input.trim() ? "linear-gradient(135deg, #6366f1, #8b5cf6)" : "#e2e8f0",
+                color: input.trim() ? "#fff" : "#94a3b8", border: "none", borderRadius: 10,
+                cursor: input.trim() ? "pointer" : "not-allowed", fontWeight: 600, fontSize: "0.875rem",
+                boxShadow: input.trim() ? "0 2px 8px rgba(99,102,241,0.3)" : "none",
+                transition: "all 0.15s ease",
               }}
             >
               Send
